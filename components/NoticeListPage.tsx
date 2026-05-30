@@ -1,0 +1,443 @@
+"use client";
+
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  PenSquare,
+  Search,
+  User,
+  Calendar,
+  Trash2,
+  Inbox,
+  X,
+} from "lucide-react";
+
+// 공지사항 타입 정의
+interface Notice {
+  id: string;
+  title: string;
+  content: string;
+  author: string;
+  createdAt: string;
+  isPinned: boolean;
+  category: string;
+}
+
+// 샘플 더미 데이터
+const initialNotices: Notice[] = [
+  {
+    id: "1",
+    title: "2024년 상반기 워크샵 안내",
+    content:
+      "안녕하세요, 팀원 여러분. 2024년 상반기 워크샵이 다음 주 금요일에 진행될 예정입니다. 장소는 강남 컨퍼런스 센터이며, 오전 10시부터 시작합니다. 모든 팀원의 참석을 부탁드립니다. 점심 식사와 간식이 제공될 예정이오니 참고 바랍니다.",
+    author: "김대표",
+    createdAt: "2024-01-15T09:00:00Z",
+    isPinned: true,
+    category: "공지",
+  },
+  {
+    id: "2",
+    title: "신규 프로젝트 킥오프 미팅",
+    content:
+      "새로운 프로젝트가 시작됩니다. 이번 프로젝트는 고객사의 요청에 따라 3개월 내 완료해야 합니다. 관련 부서별 담당자는 목요일 오후 2시 회의실 A로 모여주세요. 프로젝트 개요와 역할 분담에 대해 논의할 예정입니다.",
+    author: "박팀장",
+    createdAt: "2024-01-14T14:30:00Z",
+    isPinned: false,
+    category: "업무",
+  },
+  {
+    id: "3",
+    title: "사내 동호회 모집 안내",
+    content:
+      "2024년 사내 동호회를 새롭게 모집합니다. 관심 있는 분야의 동호회에 가입하시거나, 새로운 동호회를 개설하실 수 있습니다. 신청은 인사팀 홈페이지에서 가능하며, 마감일은 이번 달 말까지입니다.",
+    author: "이인사",
+    createdAt: "2024-01-13T11:00:00Z",
+    isPinned: false,
+    category: "기타",
+  },
+  {
+    id: "4",
+    title: "보안 교육 필수 이수 안내",
+    content:
+      "전 직원 대상 연간 보안 교육이 진행됩니다. 온라인 교육으로 진행되며, 이번 주 금요일까지 반드시 이수해주시기 바랍니다. 미이수 시 인사 평가에 반영될 수 있으니 유의해주세요.",
+    author: "최보안",
+    createdAt: "2024-01-12T16:00:00Z",
+    isPinned: true,
+    category: "공지",
+  },
+  {
+    id: "5",
+    title: "연말 정산 서류 제출 안내",
+    content:
+      "2023년 연말 정산 관련 서류를 제출해주시기 바랍니다. 제출 기한은 1월 20일까지이며, 인사팀 담당자에게 직접 제출하시거나 이메일로 보내주시면 됩니다. 문의사항은 인사팀으로 연락주세요.",
+    author: "정회계",
+    createdAt: "2024-01-10T10:00:00Z",
+    isPinned: false,
+    category: "업무",
+  },
+];
+
+// 카테고리 목록
+const categories = ["전체", "공지", "업무", "기타"];
+
+// 카테고리별 Badge 색상
+const getCategoryVariant = (
+  category: string
+): "default" | "secondary" | "outline" | "destructive" => {
+  switch (category) {
+    case "공지":
+      return "default";
+    case "업무":
+      return "secondary";
+    default:
+      return "outline";
+  }
+};
+
+const getCategoryClassName = (category: string): string => {
+  switch (category) {
+    case "공지":
+      return "bg-blue-100 text-blue-700 hover:bg-blue-100";
+    case "업무":
+      return "bg-green-100 text-green-700 hover:bg-green-100";
+    default:
+      return "bg-gray-100 text-gray-700 hover:bg-gray-100";
+  }
+};
+
+// 날짜 포맷 함수 (YYYY.MM.DD)
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}.${month}.${day}`;
+};
+
+// 본문 미리보기 함수 (80자 제한)
+const truncateContent = (content: string, maxLength: number = 80): string => {
+  if (content.length <= maxLength) return content;
+  return content.slice(0, maxLength) + "...";
+};
+
+interface NoticeListPageProps {
+  notices?: Notice[];
+  onDelete?: (id: string) => void;
+  onNavigate?: (page: string, id?: string) => void;
+}
+
+export default function NoticeListPage({
+  notices: externalNotices,
+  onDelete: externalOnDelete,
+  onNavigate = () => {},
+}: NoticeListPageProps) {
+  // 내부 fallback state
+  const [internalNotices, setInternalNotices] =
+    useState<Notice[]>(initialNotices);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("전체");
+  
+  // 새 공지 작성 다이얼로그 상태
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newNotice, setNewNotice] = useState({
+    title: "",
+    content: "",
+    category: "공지",
+    isPinned: false,
+  });
+
+  // props가 있으면 props 사용, 없으면 내부 state 사용
+  const notices = externalNotices ?? internalNotices;
+  const onDelete = externalOnDelete ?? ((id: string) => {
+    setInternalNotices((prev) => prev.filter((notice) => notice.id !== id));
+  });
+
+  // 새 공지 작성 제출 핸들러
+  const handleSubmitNotice = () => {
+    if (!newNotice.title.trim() || !newNotice.content.trim()) {
+      return;
+    }
+
+    const notice: Notice = {
+      id: Date.now().toString(),
+      title: newNotice.title,
+      content: newNotice.content,
+      author: "작성자",
+      createdAt: new Date().toISOString(),
+      isPinned: newNotice.isPinned,
+      category: newNotice.category,
+    };
+
+    setInternalNotices((prev) => [notice, ...prev]);
+    setNewNotice({ title: "", content: "", category: "공지", isPinned: false });
+    setIsDialogOpen(false);
+  };
+
+  // 필터링 로직
+  const filteredNotices = notices
+    .filter((notice) => {
+      // 카테고리 필터
+      if (selectedCategory !== "전체" && notice.category !== selectedCategory) {
+        return false;
+      }
+      // 검색어 필터
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        return (
+          notice.title.toLowerCase().includes(query) ||
+          notice.author.toLowerCase().includes(query)
+        );
+      }
+      return true;
+    })
+    // isPinned가 true인 항목을 최상단 정렬
+    .sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        {/* 헤더 영역 */}
+        <header className="mb-8 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900">
+            공지사항 게시판
+          </h1>
+          <Button onClick={() => setIsDialogOpen(true)}>
+            <PenSquare className="mr-2 h-4 w-4" />
+            새 공지 작성
+          </Button>
+        </header>
+
+        {/* 필터/검색 영역 */}
+        <div className="mb-6 space-y-4">
+          {/* 검색 인풋 */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input
+              placeholder="제목 또는 작성자 검색..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          {/* 카테고리 필터 */}
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => (
+              <Button
+                key={category}
+                variant={selectedCategory === category ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(category)}
+                className={
+                  selectedCategory === category
+                    ? ""
+                    : "text-gray-600 hover:text-gray-900"
+                }
+              >
+                {category}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* 공지 카드 목록 */}
+        {filteredNotices.length > 0 ? (
+          <div className="space-y-4">
+            {filteredNotices.map((notice) => (
+              <Card
+                key={notice.id}
+                className={`transition-shadow duration-200 hover:shadow-lg ${
+                  notice.isPinned
+                    ? "border-amber-200 bg-amber-50"
+                    : "border-gray-100 bg-white"
+                }`}
+              >
+                <CardContent className="p-5">
+                  {/* 상단: 배지들 */}
+                  <div className="mb-3 flex flex-wrap items-center gap-2">
+                    {notice.isPinned && (
+                      <Badge
+                        variant="secondary"
+                        className="bg-amber-100 text-amber-700"
+                      >
+                        📌 고정
+                      </Badge>
+                    )}
+                    <Badge
+                      variant="secondary"
+                      className={getCategoryClassName(notice.category)}
+                    >
+                      {notice.category}
+                    </Badge>
+                  </div>
+
+                  {/* 제목 */}
+                  <h2
+                    className="mb-2 cursor-pointer text-lg font-semibold text-gray-900 hover:text-blue-600"
+                    onClick={() => onNavigate("detail", notice.id)}
+                  >
+                    {notice.title}
+                  </h2>
+
+                  {/* 본문 미리보기 */}
+                  <p className="mb-4 text-sm leading-relaxed text-gray-600">
+                    {truncateContent(notice.content)}
+                  </p>
+
+                  {/* 하단: 작성자, 날짜, 삭제 버튼 */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <User className="h-4 w-4" />
+                        {notice.author}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        {formatDate(notice.createdAt)}
+                      </span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onDelete(notice.id)}
+                      className="text-red-400 hover:bg-red-50 hover:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          /* 빈 상태 */
+          <div className="flex flex-col items-center justify-center py-16 text-gray-500">
+            <Inbox className="mb-4 h-12 w-12" />
+            <p className="text-lg">검색 결과가 없습니다</p>
+          </div>
+        )}
+      </div>
+
+      {/* 새 공지 작성 다이얼로그 */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-h-[85vh] w-[66vw] max-w-4xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">새 공지 작성</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* 제목 입력 */}
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-sm font-medium">
+                제목
+              </Label>
+              <Input
+                id="title"
+                placeholder="공지 제목을 입력하세요"
+                value={newNotice.title}
+                onChange={(e) =>
+                  setNewNotice((prev) => ({ ...prev, title: e.target.value }))
+                }
+                className="w-full"
+              />
+            </div>
+
+            {/* 카테고리 선택 */}
+            <div className="space-y-2">
+              <Label htmlFor="category" className="text-sm font-medium">
+                카테고리
+              </Label>
+              <Select
+                value={newNotice.category}
+                onValueChange={(value) =>
+                  setNewNotice((prev) => ({ ...prev, category: value }))
+                }
+              >
+                <SelectTrigger className="w-full max-w-xs">
+                  <SelectValue placeholder="카테고리 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="공지">공지</SelectItem>
+                  <SelectItem value="업무">업무</SelectItem>
+                  <SelectItem value="기타">기타</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 본문 입력 */}
+            <div className="space-y-2">
+              <Label htmlFor="content" className="text-sm font-medium">
+                내용
+              </Label>
+              <Textarea
+                id="content"
+                placeholder="공지 내용을 입력하세요"
+                value={newNotice.content}
+                onChange={(e) =>
+                  setNewNotice((prev) => ({ ...prev, content: e.target.value }))
+                }
+                className="min-h-[200px] w-full resize-none"
+              />
+            </div>
+
+            {/* 고정 여부 */}
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="isPinned"
+                checked={newNotice.isPinned}
+                onCheckedChange={(checked) =>
+                  setNewNotice((prev) => ({
+                    ...prev,
+                    isPinned: checked === true,
+                  }))
+                }
+              />
+              <Label htmlFor="isPinned" className="text-sm font-medium cursor-pointer">
+                상단 고정
+              </Label>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+            >
+              취소
+            </Button>
+            <Button
+              onClick={handleSubmitNotice}
+              disabled={!newNotice.title.trim() || !newNotice.content.trim()}
+            >
+              작성 완료
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
