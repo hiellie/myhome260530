@@ -63,3 +63,31 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
+CREATE TABLE posts (
+    -- 1. 게시글 고유 식별자 (자동 증가 ID 또는 UUID)
+    id SERIAL PRIMARY KEY,
+    
+    -- 2. 제목 (필수 입력)
+    title VARCHAR(255) NOT NULL,
+    
+    -- 3. 작성자 (선택 입력이므로 NULL 허용)
+    author VARCHAR(100),
+    
+    -- 4. 내용 (필수 입력, 길이에 제한이 없는 TEXT 타입)
+    content TEXT NOT NULL,
+    
+    -- 5. Vercel Blob 파일 URL 저장 (파일이 없을 수 있으므로 NULL 허용)
+    -- Vercel Blob에서 생성된 고유 다운로드 URL이 이 필드에 문자열로 저장됩니다.
+    file_url TEXT,
+    
+    -- 6. 원본 파일 이름 저장 (사용자가 업로드한 실제 파일명 보관용, 선택)
+    file_name VARCHAR(255),
+
+    -- 7. 등록일 및 수정일 (자동 생성)
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 데이터가 많아질 경우를 대비해 생성일 기준 정렬 조회를 위한 인덱스 추가 (선택)
+CREATE INDEX idx_posts_created_at ON posts (created_at DESC);

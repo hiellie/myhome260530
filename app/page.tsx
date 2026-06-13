@@ -1,5 +1,5 @@
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
-
+/* eslint-disable @next/next/no-img-element */
 export default function Home() {
   return (
     /* Full-screen overlay: sits above the global SiteNav (z-50) */

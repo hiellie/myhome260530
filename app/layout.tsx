@@ -9,7 +9,7 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'RAGWATSON | AI 서비스 개발 교육',
+  title: 'AI Bona Fide',
   description: 'RAGWATSON은 실무 중심 AI 서비스 개발 교육을 제공합니다. RAG, Multi-Agent, FastAPI 기반 엔터프라이즈 AI 역량을 키웁니다.',
   generator: 'RAGWATSON',
   icons: {

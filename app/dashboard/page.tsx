@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Calendar, CheckSquare, TrendingUp, BarChart2, PieChart, Newspaper, Bookmark, Star, Search, FileText, StickyNote, Bot } from "lucide-react";
+import { Calendar, CheckSquare, TrendingUp, TrendingDown, BarChart2, PieChart, Newspaper, Bookmark, Star, Search, FileText, StickyNote, Bot, FolderOpen, Table2, Heart, Package, Plane, ShoppingCart, PenLine, LayoutList, Briefcase, Timer, Building2 } from "lucide-react";
 
 import { AuthLoginButton } from "@/components/auth/AuthLoginButton";
 import { GeminiHeroChat } from "@/components/GeminiHeroChat";
 import { DashboardAssistant } from "@/components/DashboardAssistant";
+import { FilesBoard } from "@/components/files/FilesBoard";
+import { FilesPostList } from "@/components/files/FilesPostList";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -16,14 +18,48 @@ const NAV_ITEMS = [
   { key: "MyStock",   label: "My Stock",  icon: BarChart2 },
   { key: "MyAssets",  label: "My Assets", icon: PieChart },
   { key: "News",      label: "News",      icon: Newspaper },
-  { key: "Scrap",     label: "Scrap",     icon: Bookmark },
-  { key: "Interest",  label: "Interest",  icon: Star },
+  { key: "Scrap",     label: "Files",     icon: Bookmark },
+  { key: "Interests", label: "Interests", icon: Star },
   { key: "Research",  label: "Research",  icon: Search },
   { key: "Reports",   label: "Reports",   icon: FileText },
   { key: "Memo",      label: "Memo",      icon: StickyNote },
 ] as const;
 
 type TabKey = (typeof NAV_ITEMS)[number]["key"];
+
+const FILES_SIDEBAR = [
+  { key: "Board",       label: "글쓰기",       icon: PenLine,     activeText: "text-[#845EC2]", activeBg: "bg-[#845EC2]/10" },
+  { key: "List",        label: "Board",        icon: LayoutList,  activeText: "text-[#0089BA]", activeBg: "bg-[#0089BA]/10" },
+  { key: "MyDocuments", label: "My Documents", icon: FolderOpen,      activeText: "text-[#2C73D2]", activeBg: "bg-[#2C73D2]/10" },
+  { key: "MyTables",    label: "My Tables",    icon: Table2,          activeText: "text-[#008E9B]", activeBg: "bg-[#008E9B]/10" },
+  { key: "MyScraps",    label: "My Scraps",    icon: Bookmark,        activeText: "text-[#008F7A]", activeBg: "bg-[#008F7A]/10" },
+] as const;
+
+type FilesTabKey = (typeof FILES_SIDEBAR)[number]["key"];
+
+const INTERESTS_SIDEBAR = [
+  { key: "Hobbies",  label: "Hobbies",  icon: Heart,        activeText: "text-[#845EC2]", activeBg: "bg-[#845EC2]/10" },
+  { key: "Items",    label: "Items",    icon: Package,      activeText: "text-[#2C73D2]", activeBg: "bg-[#2C73D2]/10" },
+  { key: "Travel",   label: "Travel",   icon: Plane,        activeText: "text-[#008E9B]", activeBg: "bg-[#008E9B]/10" },
+  { key: "Shopping", label: "Shopping", icon: ShoppingCart, activeText: "text-[#008F7A]", activeBg: "bg-[#008F7A]/10" },
+] as const;
+
+type InterestsTabKey = (typeof INTERESTS_SIDEBAR)[number]["key"];
+
+const MYSTOCK_SIDEBAR = [
+  { key: "MyPortfolio",    label: "My Portfolio",  icon: Briefcase,     activeText: "text-[#845EC2]", activeBg: "bg-[#845EC2]/10" },
+  { key: "Short",          label: "Short",         icon: TrendingDown,  activeText: "text-[#2C73D2]", activeBg: "bg-[#2C73D2]/10" },
+  { key: "Long",           label: "Long",          icon: TrendingUp,    activeText: "text-[#008E9B]", activeBg: "bg-[#008E9B]/10" },
+  { key: "Hold",           label: "Hold",          icon: Timer,         activeText: "text-[#0089BA]", activeBg: "bg-[#0089BA]/10" },
+] as const;
+
+const MYSTOCK_ANALYSIS = [
+  { key: "SamsungAnalysis", label: "삼성전자 분석", icon: Building2, activeText: "text-[#008F7A]", activeBg: "bg-[#008F7A]/10" },
+] as const;
+
+type StockTabKey =
+  | (typeof MYSTOCK_SIDEBAR)[number]["key"]
+  | (typeof MYSTOCK_ANALYSIS)[number]["key"];
 
 // Palette: #845EC2 · #2C73D2 · #0081CF · #0089BA · #008E9B · #008F7A
 const QUICK_STATS = [
@@ -47,6 +83,9 @@ function PlaceholderSection({ icon: Icon, title, description }: { icon: React.El
 
 export default function DashboardPage() {
   const [active, setActive] = useState<TabKey>("Schedule");
+  const [filesTab, setFilesTab] = useState<FilesTabKey>("Board");
+  const [interestsTab, setInterestsTab] = useState<InterestsTabKey>("Hobbies");
+  const [stockTab, setStockTab] = useState<StockTabKey>("MyPortfolio");
 
   const today = new Date();
   const dateStr = today.toLocaleDateString("ko-KR", {
@@ -209,24 +248,82 @@ export default function DashboardPage() {
           )}
 
           {active === "MyStock" && (
-            <div className="space-y-3">
-              {[
-                { name: "삼성전자", ticker: "005930", price: "74,200", change: "+1.50%", up: true },
-                { name: "카카오",   ticker: "035720", price: "41,350", change: "-0.84%", up: false },
-                { name: "NVIDIA",   ticker: "NVDA",   price: "$892",   change: "+3.21%", up: true },
-                { name: "애플",     ticker: "AAPL",   price: "$189",   change: "+0.62%", up: true },
-              ].map((s) => (
-                <div key={s.ticker} className="flex items-center gap-4 rounded-2xl border border-neutral-100 bg-neutral-50 px-5 py-4">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-neutral-800">{s.name}</p>
-                    <p className="text-[11px] text-neutral-400">{s.ticker}</p>
+            <div className="flex gap-6">
+              {/* Sidebar */}
+              <aside className="w-48 shrink-0">
+                <nav className="flex flex-col gap-1">
+                  {MYSTOCK_SIDEBAR.map(({ key, label, icon: Icon, activeText, activeBg }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setStockTab(key)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors text-left",
+                        stockTab === key
+                          ? cn(activeBg, activeText)
+                          : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800",
+                      )}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      {label}
+                    </button>
+                  ))}
+                  <hr className="my-2 border-neutral-100" />
+                  {MYSTOCK_ANALYSIS.map(({ key, label, icon: Icon, activeText, activeBg }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setStockTab(key)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors text-left",
+                        stockTab === key
+                          ? cn(activeBg, activeText)
+                          : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800",
+                      )}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      {label}
+                    </button>
+                  ))}
+                </nav>
+              </aside>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                {stockTab === "MyPortfolio" && (
+                  <div className="space-y-3">
+                    {[
+                      { name: "삼성전자", ticker: "005930", price: "74,200", change: "+1.50%", up: true },
+                      { name: "카카오",   ticker: "035720", price: "41,350", change: "-0.84%", up: false },
+                      { name: "NVIDIA",   ticker: "NVDA",   price: "$892",   change: "+3.21%", up: true },
+                      { name: "애플",     ticker: "AAPL",   price: "$189",   change: "+0.62%", up: true },
+                    ].map((s) => (
+                      <div key={s.ticker} className="flex items-center gap-4 rounded-2xl border border-neutral-100 bg-neutral-50 px-5 py-4">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-neutral-800">{s.name}</p>
+                          <p className="text-[11px] text-neutral-400">{s.ticker}</p>
+                        </div>
+                        <span className="text-sm font-semibold text-neutral-800">{s.price}</span>
+                        <span className={cn("min-w-[60px] text-right text-sm font-medium", s.up ? "text-[#008E9B]" : "text-red-500")}>
+                          {s.change}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                  <span className="text-sm font-semibold text-neutral-800">{s.price}</span>
-                  <span className={cn("min-w-[60px] text-right text-sm font-medium", s.up ? "text-[#008E9B]" : "text-red-500")}>
-                    {s.change}
-                  </span>
-                </div>
-              ))}
+                )}
+                {stockTab === "Short" && (
+                  <PlaceholderSection icon={TrendingDown} title="Short" description="숏 포지션 종목을 관리하세요." />
+                )}
+                {stockTab === "Long" && (
+                  <PlaceholderSection icon={TrendingUp} title="Long" description="롱 포지션 종목을 관리하세요." />
+                )}
+                {stockTab === "Hold" && (
+                  <PlaceholderSection icon={Timer} title="Hold" description="장기 보유 종목을 확인하세요." />
+                )}
+                {stockTab === "SamsungAnalysis" && (
+                  <PlaceholderSection icon={Building2} title="삼성전자 분석" description="삼성전자 종목 분석 리포트를 확인하세요." />
+                )}
+              </div>
             </div>
           )}
 
@@ -255,11 +352,86 @@ export default function DashboardPage() {
           )}
 
           {active === "Scrap" && (
-            <PlaceholderSection icon={Bookmark} title="Scrap" description="저장한 아티클과 링크를 한 곳에서 관리하세요." />
+            <div className="flex gap-6">
+              {/* Sidebar */}
+              <aside className="w-48 shrink-0">
+                <nav className="flex flex-col gap-1">
+                  {FILES_SIDEBAR.map(({ key, label, icon: Icon, activeText, activeBg }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setFilesTab(key)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors text-left",
+                        filesTab === key
+                          ? cn(activeBg, activeText)
+                          : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800",
+                      )}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      {label}
+                    </button>
+                  ))}
+                </nav>
+              </aside>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                {filesTab === "Board" && <FilesBoard />}
+                {filesTab === "List" && <FilesPostList />}
+                {filesTab === "MyDocuments" && (
+                  <PlaceholderSection icon={FolderOpen} title="My Documents" description="내 문서를 한 곳에서 관리하세요." />
+                )}
+                {filesTab === "MyTables" && (
+                  <PlaceholderSection icon={Table2} title="My Tables" description="테이블 형태의 데이터를 관리하세요." />
+                )}
+                {filesTab === "MyScraps" && (
+                  <PlaceholderSection icon={Bookmark} title="My Scraps" description="스크랩한 아티클과 링크를 모아보세요." />
+                )}
+              </div>
+            </div>
           )}
 
-          {active === "Interest" && (
-            <PlaceholderSection icon={Star} title="Interest" description="관심 종목·키워드·테마를 추적하세요." />
+          {active === "Interests" && (
+            <div className="flex gap-6">
+              {/* Sidebar */}
+              <aside className="w-48 shrink-0">
+                <nav className="flex flex-col gap-1">
+                  {INTERESTS_SIDEBAR.map(({ key, label, icon: Icon, activeText, activeBg }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setInterestsTab(key)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors text-left",
+                        interestsTab === key
+                          ? cn(activeBg, activeText)
+                          : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800",
+                      )}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      {label}
+                    </button>
+                  ))}
+                </nav>
+              </aside>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                {interestsTab === "Hobbies" && (
+                  <PlaceholderSection icon={Heart} title="Hobbies" description="나의 취미와 관심사를 기록하고 관리하세요." />
+                )}
+                {interestsTab === "Items" && (
+                  <PlaceholderSection icon={Package} title="Items" description="관심 있는 아이템과 제품을 모아보세요." />
+                )}
+                {interestsTab === "Travel" && (
+                  <PlaceholderSection icon={Plane} title="Travel" description="여행 계획과 가고 싶은 곳을 정리하세요." />
+                )}
+                {interestsTab === "Shopping" && (
+                  <PlaceholderSection icon={ShoppingCart} title="Shopping" description="쇼핑 목록과 위시리스트를 관리하세요." />
+                )}
+              </div>
+            </div>
           )}
 
           {active === "Research" && (
