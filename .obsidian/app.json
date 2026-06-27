@@ -1,0 +1,12 @@
+{
+  "userIgnoreFilters": [
+    "frontend/components/",
+    "frontend/app/",
+    "frontend/hooks/",
+    "frontend/lib/",
+    "frontend/node_modules/",
+    "frontend/public/",
+    "frontend/styles/"
+  ],
+  "showUnsupportedFiles": true
+}

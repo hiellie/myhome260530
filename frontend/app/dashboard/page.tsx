@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Calendar, CheckSquare, TrendingUp, TrendingDown, BarChart2, PieChart, Newspaper, Bookmark, Star, Search, FileText, StickyNote, Bot, FolderOpen, Table2, Heart, Package, Plane, ShoppingCart, PenLine, LayoutList, Briefcase, Timer, Building2 } from "lucide-react";
+import { Calendar, CheckSquare, Mail, TrendingUp, TrendingDown, BarChart2, PieChart, Newspaper, Bookmark, Star, Search, FileText, StickyNote, Bot, FolderOpen, Table2, Heart, Package, Plane, ShoppingCart, PenLine, LayoutList, Briefcase, Timer, Building2 } from "lucide-react";
 
 import { AuthLoginButton } from "@/components/auth/AuthLoginButton";
 import { GeminiHeroChat } from "@/components/GeminiHeroChat";
@@ -12,17 +12,19 @@ import { FilesPostList } from "@/components/files/FilesPostList";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { key: "Schedule",  label: "Schedule",  icon: Calendar },
-  { key: "Todo",      label: "To do",     icon: CheckSquare },
-  { key: "Finance",   label: "Finance",   icon: TrendingUp },
-  { key: "MyStock",   label: "My Stock",  icon: BarChart2 },
-  { key: "MyAssets",  label: "My Assets", icon: PieChart },
-  { key: "News",      label: "News",      icon: Newspaper },
-  { key: "Scrap",     label: "Files",     icon: Bookmark },
-  { key: "Interests", label: "Interests", icon: Star },
-  { key: "Research",  label: "Research",  icon: Search },
-  { key: "Reports",   label: "Reports",   icon: FileText },
-  { key: "Memo",      label: "Memo",      icon: StickyNote },
+  { key: "Schedule",  label: "Schedule",  icon: Calendar,    href: "/schedule", hoverClass: "hover:text-[#2C73D2]" },
+  { key: "Todo",      label: "To do",     icon: CheckSquare,                    hoverClass: "hover:text-[#008F7A]" },
+  { key: "Mailbox",   label: "Mailbox",   icon: Mail,        href: "/mailbox",  hoverClass: "hover:text-[#845EC2]" },
+  { key: "Mail",      label: "Mail",      icon: Mail,        href: "/mail",     hoverClass: "hover:text-[#FF6363]" },
+  { key: "Finance",   label: "Finance",   icon: TrendingUp,                     hoverClass: "hover:text-[#00B4D8]" },
+  { key: "MyStock",   label: "My Stock",  icon: BarChart2,                      hoverClass: "hover:text-[#06C96A]" },
+  { key: "MyAssets",  label: "My Assets", icon: PieChart,                       hoverClass: "hover:text-[#F77F00]" },
+  { key: "News",      label: "News",      icon: Newspaper,                      hoverClass: "hover:text-[#E63946]" },
+  { key: "Scrap",     label: "Files",     icon: Bookmark,                       hoverClass: "hover:text-[#4361EE]" },
+  { key: "Interests", label: "Interests", icon: Star,                           hoverClass: "hover:text-[#F72585]" },
+  { key: "Research",  label: "Research",  icon: Search,                         hoverClass: "hover:text-[#7B2FBE]" },
+  { key: "Reports",   label: "Reports",   icon: FileText,                       hoverClass: "hover:text-[#0081CF]" },
+  { key: "Memo",      label: "Memo",      icon: StickyNote,                     hoverClass: "hover:text-[#FB8500]" },
 ] as const;
 
 type TabKey = (typeof NAV_ITEMS)[number]["key"];
@@ -117,21 +119,28 @@ export default function DashboardPage() {
             className="flex flex-1 items-center justify-center gap-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             aria-label="대시보드 메뉴"
           >
-            {NAV_ITEMS.map(({ key, label }) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setActive(key)}
-                className={cn(
-                  "shrink-0 text-[11px] font-medium tracking-wide transition-colors",
-                  active === key
-                    ? "text-[#845EC2]"
-                    : "text-neutral-400 hover:text-neutral-700",
-                )}
-              >
-                {label}
-              </button>
-            ))}
+            {NAV_ITEMS.map((item) => {
+              const cls = cn(
+                "shrink-0 text-[11px] font-medium tracking-wide transition-colors",
+                active === item.key
+                  ? "text-[#845EC2]"
+                  : cn("text-neutral-400", item.hoverClass),
+              );
+              return "href" in item ? (
+                <Link key={item.key} href={(item as any).href} className={cls}>
+                  {item.label}
+                </Link>
+              ) : (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => setActive(item.key as TabKey)}
+                  className={cls}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
           </nav>
 
           {/* Login */}
